@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .data-box { background-color: #f8fafc; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+        .label-text { font-size: 0.7rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
+        .value-text { font-size: 0.95rem; font-weight: 600; color: #1e293b; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Loading State -->
+    <div id="loader" class="text-center">
+        <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
+        <p class="text-slate-600 font-bold">Verifying from Server...</p>
+    </div>
+
+    <!-- UI Card (Hidden initially) -->
+    <div id="receipt" class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden hidden">
+        <div class="flex justify-between items-center p-5 border-b border-slate-100">
+            <h2 class="font-bold text-slate-800">Transaction Details</h2>
+            <button onclick="window.history.back()" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="p-6 text-center">
+            <h3 id="ui-title" class="text-lg font-semibold text-slate-800 mb-1">Money Received</h3>
+            <p id="ui-time" class="text-xs text-slate-400 mb-4">Loading...</p>
+            
+            <h1 id="ui-amount" class="text-4xl font-extrabold text-green-600 tracking-tight mb-4">+₹0.00</h1>
+            
+            <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-6">
+                <i class="fas fa-check-circle"></i> Success
+            </span>
+
+            <div class="text-left space-y-3">
+                <div class="data-box">
+                    <div class="label-text">Transaction ID</div>
+                    <div class="value-text font-mono text-sm flex justify-between">
+                        <span id="ui-txnid">STG-...</span>
+                        <i class="far fa-copy text-slate-400 cursor-pointer"></i>
+                    </div>
+                </div>
+
+                <div class="data-box">
+                    <div class="label-text">Payment Method</div>
+                    <div class="value-text text-indigo-600"><i class="fas fa-code"></i> <span id="ui-method">API Transfer</span></div>
+                </div>
+
+                <div class="data-box">
+                    <div class="label-text">Category</div>
+                    <div class="value-text" id="ui-category">P2P received</div>
+                </div>
+
+                <div class="data-box bg-blue-50/50">
+                    <div class="label-text">Notes</div>
+                    <div class="value-text text-slate-600 text-sm" id="ui-notes">None</div>
+                </div>
+
+                <div class="data-box bg-green-50/70 border border-green-100">
+                    <div class="label-text text-green-600">Comment</div>
+                    <div class="value-text text-green-800 text-sm" id="ui-comment">Payment_procceed_successfully</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get ID from URL (/transaction.html?id=STG-XYZ)
+        const urlParams = new URLSearchParams(window.location.search);
+        const txnId = urlParams.get('id');
+
+        async function fetchDetails() {
+            if(!txnId) {
+                document.getElementById('loader').innerHTML = "<p class='text-red-500 font-bold'>Invalid Request. No ID found.</p>";
+                return;
+            }
+
+            try {
+                // Calling Vercel Backend API
+                const res = await fetch(`/api/track?id=${txnId}`);
+                const data = await res.json();
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('receipt').classList.remove('hidden');
+
+                if(data.success && data.transaction) {
+                    const t = data.transaction;
+                    
+                    // Set UI fields
+                    document.getElementById('ui-title').innerText = t.title;
+                    document.getElementById('ui-time').innerText = t.timestamp;
+                    
+                    const sign = t.type === 'credit' ? '+' : '-';
+                    const color = t.type === 'credit' ? 'text-green-600' : 'text-slate-800';
+                    const amountEl = document.getElementById('ui-amount');
+                    amountEl.innerText = `${sign}₹${t.amount}`;
+                    amountEl.className = `text-4xl font-extrabold ${color} tracking-tight mb-4`;
+
+                    document.getElementById('ui-txnid').innerText = t.txnid || txnId;
+                    document.getElementById('ui-method').innerText = t.method || "Transfer";
+                    document.getElementById('ui-category').innerText = t.type + " Transaction";
+                    
+                } else {
+                    document.getElementById('receipt').innerHTML = `
+                        <div class="p-8 text-center">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                            <h2 class="text-xl font-bold text-slate-800">Transaction Not Found</h2>
+                            <p class="text-slate-500 mt-2 text-sm">${data.error || 'Invalid ID'}</p>
+                            <button onclick="window.history.back()" class="mt-6 bg-slate-900 text-white px-6 py-2 rounded-xl">Go Back</button>
+                        </div>`;
+                }
+            } catch(e) {
+                document.getElementById('loader').innerHTML = "<p class='text-red-500 font-bold'>Server Error. Try again.</p>";
+            }
+        }
+
+        fetchDetails();
+    </script>
+</body>
+</html>

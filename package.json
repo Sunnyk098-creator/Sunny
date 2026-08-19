@@ -1,0 +1,12 @@
+{
+  "name": "ultra-pay-tracker",
+  "version": "1.0.0",
+  "description": "Private Transaction Tracker API",
+  "main": "api/track.js",
+  "scripts": {
+    "start": "node api/track.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.7"
+  }
+}

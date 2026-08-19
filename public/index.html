@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Transaction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h1 class="text-2xl font-bold text-slate-800 mb-2">Track Ultra Pay</h1>
+        <p class="text-slate-500 mb-6 text-sm">Enter your Transaction ID below</p>
+        
+        <input type="text" id="txnId" placeholder="e.g. STG-12345678" 
+            class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 outline-none mb-4 font-mono">
+        
+        <button onclick="trackTxn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">
+            Verify Transaction
+        </button>
+    </div>
+
+    <script>
+        function trackTxn() {
+            const id = document.getElementById('txnId').value.trim();
+            if(id) {
+                // Redirect to transaction page
+                window.location.href = `/transaction.html?id=${id}`;
+            }
+        }
+    </script>
+</body>
+</html>
